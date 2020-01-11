@@ -1,0 +1,6 @@
+{
+  "themes": [{
+    "name" : "efa-radius",
+    "types": [ "login" ]
+  }]
+}
