@@ -64,6 +64,9 @@ public class UserAttributeValueLDAPMapper extends AbstractLDAPStorageMapper {
         String userModelAttrName = getUserModelAttribute();
         String ldapAttrName = getLdapAttributeName();
 
+        List<String> userModelAttrValueList = getUserModelAttributeValue();
+        List<String> ldapAttrValueList = getLdapAttributeValue();
+
         // We won't update binary attributes to Keycloak DB. They might be too big
         if (isBinaryAttribute()) {
             return;
@@ -75,6 +78,10 @@ public class UserAttributeValueLDAPMapper extends AbstractLDAPStorageMapper {
 
             // we have java property on UserModel
             String ldapAttrValue = ldapUser.getAttributeAsString(ldapAttrName);
+
+            if (ldapAttrValueList.contains(ldapAttrValue)) {
+                ldapAttrValue = userModelAttrValueList.get(ldapAttrValueList.indexOf(ldapAttrValue));
+            }
 
             checkDuplicateEmail(userModelAttrName, ldapAttrValue, realm, ldapProvider.getSession(), user);
 
@@ -408,6 +415,14 @@ public class UserAttributeValueLDAPMapper extends AbstractLDAPStorageMapper {
 
     private String getUserModelAttribute() {
         return mapperModel.getConfig().getFirst(USER_MODEL_ATTRIBUTE);
+    }
+
+    private List<String> getUserModelAttributeValue() {
+        return mapperModel.getConfig().getList(USER_MODEL_VALUE_ATTRIBUTE);
+    }
+
+    List<String> getLdapAttributeValue() {
+        return mapperModel.getConfig().getList(LDAP_VALUE_ATTRIBUTE);
     }
 
     String getLdapAttributeName() {

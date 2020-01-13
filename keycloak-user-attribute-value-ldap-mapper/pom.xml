@@ -2,37 +2,24 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>keycloak-custom-dev</artifactId>
+        <groupId>eu.efa.keycloak</groupId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <name>Keycloak: LDAP attribute value mapper</name>
     <description/>
 
-    <groupId>eu.efa.keycloak.mapper</groupId>
     <artifactId>keycloak-user-attribute-value-ldap-mapper</artifactId>
-    <version>1.0-SNAPSHOT</version>
 
     <packaging>jar</packaging>
-
-    <properties>
-        <version.keycloak>8.0.1</version.keycloak>
-    </properties>
 
     <dependencies>
         <dependency>
             <groupId>org.keycloak</groupId>
             <artifactId>keycloak-core</artifactId>
-            <version>${version.keycloak}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.keycloak</groupId>
-            <artifactId>keycloak-server-spi</artifactId>
-            <version>${version.keycloak}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.keycloak</groupId>
-            <artifactId>keycloak-server-spi-private</artifactId>
             <version>${version.keycloak}</version>
             <scope>provided</scope>
         </dependency>
@@ -51,16 +38,8 @@
     </dependencies>
 
     <build>
-        <finalName>user-attribute-value-mapper</finalName>
+        <finalName>keycloak-user-attribute-value-mapper</finalName>
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
-                </configuration>
-            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
