@@ -1,5 +1,8 @@
 package eu.efa.keycloak.authentication.authenticators.browser;
 
+import eu.efa.keycloak.authentication.authenticators.browser.radius.RadiusServer;
+import eu.efa.keycloak.authentication.authenticators.browser.radius.RadiusServerAccess;
+import eu.efa.keycloak.authentication.authenticators.browser.radius.RadiusUtil;
 import org.jboss.resteasy.specimpl.MultivaluedMapImpl;
 import org.keycloak.authentication.AuthenticationFlowContext;
 import org.keycloak.authentication.Authenticator;
@@ -18,13 +21,18 @@ import org.keycloak.services.ServicesLogger;
 import org.keycloak.services.managers.AuthenticationManager;
 import org.keycloak.services.util.CookieHelper;
 import org.keycloak.utils.MediaType;
+import org.tinyradius.packet.RadiusPacket;
 
 import javax.ws.rs.core.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class UsernamePasswordRadiusForm extends AbstractUsernameFormAuthenticator implements Authenticator, CredentialValidator<PasswordCredentialProvider> {
     private static final String RADIUS_PUSH_OPTION_VALUE = "push";
     private static final String LOGIN_RADIUS = "login-radius.ftl";
     private static final String RADIUS_PUSH_PASSCODE = "p";
+    private List<RadiusServerAccess> clients = new ArrayList<>();
+    private String serversConfiguration = "";
 
     protected static ServicesLogger log = ServicesLogger.LOGGER;
 
@@ -48,6 +56,8 @@ public class UsernamePasswordRadiusForm extends AbstractUsernameFormAuthenticato
     }
 
     private boolean validateRadius(AuthenticationFlowContext context, MultivaluedMap<String, String> formData) {
+        initRadiusServers();
+
         String tokenType = formData.getFirst("tokentype");
         String passcode = formData.getFirst("passcode");
 
@@ -67,6 +77,11 @@ public class UsernamePasswordRadiusForm extends AbstractUsernameFormAuthenticato
         return radiusRet;
     }
 
+    private void initRadiusServers() {
+        List<RadiusServer> servers = RadiusUtil.parseServerConfigurationToken(serversConfiguration);
+        servers.forEach(it -> clients.add(new RadiusServerAccess(it)));
+    }
+
     private void createRadiusOptionRememberMeCookies(RealmModel realm, String radiusOption, UriInfo uriInfo, ClientConnection connection) {
             String path = AuthenticationManager.getRealmCookiePath(realm, uriInfo);
             boolean secureOnly = realm.getSslRequired().isRequired(connection);
@@ -79,7 +94,26 @@ public class UsernamePasswordRadiusForm extends AbstractUsernameFormAuthenticato
     }
 
     private boolean radiusServerCall(String username, String passcode) {
-        log.info("Call radius server");
+        RadiusPacket response = null;
+        int attemptCount = 0;
+        while (response == null && attemptCount++ < clients.size()) {
+            try {
+                log.infof("Calling radius server to authenticate user {}", username);
+                response = clients.get(attemptCount).authenticate(username, passcode);
+            } catch (Exception e) {
+                log.errorf("Exception when calling remote radius server {}", e);
+            }
+        }
+
+        if (response == null) {
+            log.warnf("User {}, calling radius does not return any value.", username);
+            return false;
+        } else if (response.getPacketType() != RadiusPacket.ACCESS_ACCEPT) {
+            log.warnf("User {}, returned response {}", username, response);
+            return false;
+        }
+
+        log.infof("User {} successfully authenticated using radius", username);
         return true;
     }
 
