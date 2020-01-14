@@ -1,4 +1,4 @@
-<#import "template.ftl" as layout>
+<#import "template-radius.ftl" as layout>
 <@layout.registrationLayout displayInfo=true; section>
     <#if section = "header">
         ${msg("doLogIn")}
@@ -69,15 +69,11 @@
                 </form>
             </div>
         </div>
+    <#elseif section = "info" >
+        <#if realm.password && realm.registrationAllowed>
+            <div id="kc-registration">
+                <span>${msg("noAccount")} <a tabindex="6" href="${url.registrationUrl}">${msg("doRegister")}</a></span>
+            </div>
+        </#if>
     </#if>
-
-    <script>
-        function togglePasscode(select) {
-            if (select.value == "code") {
-                document.getElementById("passcodeDiv").style.display = "block";
-            } else {
-                document.getElementById("passcodeDiv").style.display = "none";
-            }
-        }
-    </script>
 </@layout.registrationLayout>

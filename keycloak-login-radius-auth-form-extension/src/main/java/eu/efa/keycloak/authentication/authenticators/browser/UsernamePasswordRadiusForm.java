@@ -31,10 +31,24 @@ public class UsernamePasswordRadiusForm extends AbstractUsernameFormAuthenticato
     private static final String RADIUS_PUSH_OPTION_VALUE = "push";
     private static final String LOGIN_RADIUS = "login-radius.ftl";
     private static final String RADIUS_PUSH_PASSCODE = "p";
+    protected static ServicesLogger log = ServicesLogger.LOGGER;
     private List<RadiusServerAccess> clients = new ArrayList<>();
     private String serversConfiguration = "";
 
-    protected static ServicesLogger log = ServicesLogger.LOGGER;
+    public static String getRememberMeRadius(RealmModel realm, HttpHeaders headers) {
+        if (realm.isRememberMe()) {
+            Cookie cookie = headers.getCookies().get("KEYCLOAK_RADIUS_REMEMBER_ME");
+            if (cookie != null) {
+                String value = cookie.getValue();
+                String[] s = value.split(":");
+                if (s[0].equals("radius") && s.length == 2) {
+                    return s[1];
+                }
+            }
+        }
+
+        return null;
+    }
 
     @Override
     public void action(AuthenticationFlowContext context) {
@@ -83,9 +97,9 @@ public class UsernamePasswordRadiusForm extends AbstractUsernameFormAuthenticato
     }
 
     private void createRadiusOptionRememberMeCookies(RealmModel realm, String radiusOption, UriInfo uriInfo, ClientConnection connection) {
-            String path = AuthenticationManager.getRealmCookiePath(realm, uriInfo);
-            boolean secureOnly = realm.getSslRequired().isRequired(connection);
-            CookieHelper.addCookie("KEYCLOAK_RADIUS_REMEMBER_ME", "radius:" + radiusOption, path, (String)null, (String)null, 31536000, secureOnly, true);
+        String path = AuthenticationManager.getRealmCookiePath(realm, uriInfo);
+        boolean secureOnly = realm.getSslRequired().isRequired(connection);
+        CookieHelper.addCookie("KEYCLOAK_RADIUS_REMEMBER_ME", "radius:" + radiusOption, path, null, null, 31536000, secureOnly, true);
     }
 
     private void expireRadiusOptionRememberMeCookies(RealmModel realm, UriInfo uriInfo, ClientConnection connection) {
@@ -138,21 +152,6 @@ public class UsernamePasswordRadiusForm extends AbstractUsernameFormAuthenticato
         context.challenge(challengeResponse);
     }
 
-    public static String getRememberMeRadius(RealmModel realm, HttpHeaders headers) {
-        if (realm.isRememberMe()) {
-            Cookie cookie = (Cookie)headers.getCookies().get("KEYCLOAK_RADIUS_REMEMBER_ME");
-            if (cookie != null) {
-                String value = cookie.getValue();
-                String[] s = value.split(":");
-                if (s[0].equals("radius") && s.length == 2) {
-                    return s[1];
-                }
-            }
-        }
-
-        return null;
-    }
-
     @Override
     public boolean requiresUser() {
         return false;
@@ -169,6 +168,12 @@ public class UsernamePasswordRadiusForm extends AbstractUsernameFormAuthenticato
         if (formData.containsKey("radius")) {
             forms.setAttribute("radius", formData.getFirst("radius"));
         }
+
+        String currentUriWithoutLocal = context.getUriInfo()
+                .getRequestUriBuilder()
+                .replaceQueryParam("kc_locale", new Object[]{}).build().toString();
+
+        forms.setAttribute("currentUriWithoutLocal", currentUriWithoutLocal);
 
         return forms.createForm(LOGIN_RADIUS);
     }
