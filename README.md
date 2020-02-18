@@ -8,3 +8,6 @@ https://github.com/Alfresco/alfresco-keycloak-theme/blob/master/theme/login/them
 
 #Keycloak OTP Authenticator
 https://github.com/keycloak/keycloak/blob/8.0.1/services/src/main/java/org/keycloak/authentication/authenticators/browser/OTPFormAuthenticator.java
+
+#Recaptcha sample
+https://github.com/raptor-group/keycloak-login-recaptcha/blob/master/src/main/java/org/keycloak/marjaa/providers/login/recaptcha/authenticator/RecaptchaUsernamePasswordForm.java

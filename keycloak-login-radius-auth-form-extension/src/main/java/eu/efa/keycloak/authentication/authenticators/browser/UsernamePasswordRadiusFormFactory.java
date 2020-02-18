@@ -12,6 +12,7 @@ import org.keycloak.models.KeycloakSessionFactory;
 import org.keycloak.models.credential.PasswordCredentialModel;
 import org.keycloak.provider.ProviderConfigProperty;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class UsernamePasswordRadiusFormFactory implements AuthenticatorFactory, DisplayTypeAuthenticatorFactory {
@@ -58,8 +59,9 @@ public class UsernamePasswordRadiusFormFactory implements AuthenticatorFactory, 
 
     @Override
     public boolean isConfigurable() {
-        return false;
+        return true;
     }
+
     public static final AuthenticationExecutionModel.Requirement[] REQUIREMENT_CHOICES = {
             AuthenticationExecutionModel.Requirement.REQUIRED
     };
@@ -79,9 +81,27 @@ public class UsernamePasswordRadiusFormFactory implements AuthenticatorFactory, 
         return "Validates a username, password and radius from login form.";
     }
 
+    private static final List<ProviderConfigProperty> CONFIG_PROPERTIES = new ArrayList<ProviderConfigProperty>();
+
+    static {
+        ProviderConfigProperty property;
+        property = new ProviderConfigProperty();
+        property.setName(UsernamePasswordRadiusForm.RADIUS_SERVER);
+        property.setLabel("Radius server");
+        property.setType(ProviderConfigProperty.STRING_TYPE);
+        property.setHelpText("Radius server called for authentication");
+        CONFIG_PROPERTIES.add(property);
+        property = new ProviderConfigProperty();
+        property.setName(UsernamePasswordRadiusForm.RADIUS_SECRET);
+        property.setLabel("Radius secret");
+        property.setType(ProviderConfigProperty.STRING_TYPE);
+        property.setHelpText("Radius secret provided by radius server");
+        CONFIG_PROPERTIES.add(property);
+    }
+
     @Override
     public List<ProviderConfigProperty> getConfigProperties() {
-        return null;
+        return CONFIG_PROPERTIES;
     }
 
     @Override

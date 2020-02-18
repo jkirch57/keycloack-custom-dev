@@ -13,12 +13,15 @@ import org.keycloak.credential.CredentialProvider;
 import org.keycloak.credential.PasswordCredentialProvider;
 import org.keycloak.forms.login.LoginFormsProvider;
 import org.keycloak.forms.login.freemarker.model.LoginBean;
+import org.keycloak.models.AuthenticatorConfigModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.UserModel;
+import org.keycloak.models.utils.FormMessage;
 import org.keycloak.protocol.oidc.OIDCLoginProtocol;
 import org.keycloak.services.ServicesLogger;
 import org.keycloak.services.managers.AuthenticationManager;
+import org.keycloak.services.messages.Messages;
 import org.keycloak.services.util.CookieHelper;
 import org.keycloak.utils.MediaType;
 import org.tinyradius.packet.RadiusPacket;
@@ -28,6 +31,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class UsernamePasswordRadiusForm extends AbstractUsernameFormAuthenticator implements Authenticator, CredentialValidator<PasswordCredentialProvider> {
+    public static final String RADIUS_SERVER = "radius.server";
+    public static final String RADIUS_SECRET = "radius.secret";
     private static final String RADIUS_PUSH_OPTION_VALUE = "push";
     private static final String LOGIN_RADIUS = "login-radius.ftl";
     private static final String RADIUS_PUSH_PASSCODE = "p";
@@ -133,6 +138,16 @@ public class UsernamePasswordRadiusForm extends AbstractUsernameFormAuthenticato
 
     @Override
     public void authenticate(AuthenticationFlowContext context) {
+        AuthenticatorConfigModel radiusConfig = context.getAuthenticatorConfig();
+        LoginFormsProvider form = context.form();
+
+        if (radiusConfig == null || radiusConfig.getConfig() == null
+                || radiusConfig.getConfig().get(RADIUS_SERVER) == null
+                || radiusConfig.getConfig().get(RADIUS_SECRET) == null) {
+            form.addError(new FormMessage(null, "radiusNotConfigured"));
+            return;
+        }
+
         MultivaluedMap<String, String> formData = new MultivaluedMapImpl<>();
         String loginHint = context.getAuthenticationSession().getClientNote(OIDCLoginProtocol.LOGIN_HINT_PARAM);
 
