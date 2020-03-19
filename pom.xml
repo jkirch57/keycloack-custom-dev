@@ -12,6 +12,7 @@
     <modules>
         <module>keycloak-login-radius-auth-form-extension</module>
         <module>keycloak-user-attribute-value-ldap-mapper</module>
+        <module>keycloak-audit-trail-event-listener</module>
     </modules>
 
     <properties>
